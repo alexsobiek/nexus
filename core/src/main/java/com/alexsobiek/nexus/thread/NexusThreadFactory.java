@@ -6,7 +6,7 @@ import java.util.concurrent.ThreadFactory;
 public interface NexusThreadFactory {
     interface IFactory {
         default void setThreadName(Thread thread, NexusThreadFactory factory) {
-            thread.setName(String.format("%s-%d", factory.getPrefix(), factory.getThreadCount() + 1));
+            thread.setName(String.format("%s-%d", factory.getName(), factory.getThreadCount() + 1));
         }
     }
 
@@ -16,9 +16,9 @@ public interface NexusThreadFactory {
     interface ForkJoin extends IFactory, ForkJoinPool.ForkJoinWorkerThreadFactory {
     }
 
-    String getPrefix();
+    String getName();
 
-    ThreadGroup getThreadGroup();
+    NexusThreadGroup getThreadGroup();
 
     Simple getSimpleFactory();
 
