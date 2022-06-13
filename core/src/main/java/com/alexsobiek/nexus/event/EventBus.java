@@ -30,7 +30,7 @@ public class EventBus {
     public <T extends Event> void listen(Class<T> eventClass, int priority, Consumer<T> listener) {
         EventConsumer<T> consumer = new EventConsumer<>(listener, priority);
         if (eventListeners.containsKey(eventClass)) eventListeners.get(eventClass).add((EventConsumer<Event>) consumer);
-        else eventListeners.put(eventClass, new ArrayList<>() {{
+        else eventListeners.put(eventClass, new ArrayList<EventConsumer<Event>>() {{
             add((EventConsumer<Event>) consumer);
         }});
     }
