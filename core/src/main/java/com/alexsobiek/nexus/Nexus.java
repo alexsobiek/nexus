@@ -6,22 +6,21 @@ import com.alexsobiek.nexus.util.Lazy;
 import org.slf4j.Logger;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Supplier;
 
 public class Nexus {
-    private final Logger logger;
-    private final NexusThreadFactory threadFactory;
-    private final ForkJoinPool commonPool;
+    protected final Logger logger;
+    protected final NexusThreadFactory threadFactory;
+    protected final ForkJoinPool forkJoinPool;
     private final Lazy<EventBus> eventBus;
     private final Lazy<Scheduler> scheduler;
 
     protected Nexus(int poolThreads, int schedulerThreads, NexusThreadFactory threadFactory, Logger logger) {
         this.threadFactory = threadFactory;
         this.logger = logger;
-        this.commonPool = new ForkJoinPool(poolThreads, threadFactory.getForkJoinFactory(), threadFactory.getThreadGroup(), true);
-        this.eventBus = new Lazy<>(() -> new EventBus(commonPool));
+        this.forkJoinPool = new ForkJoinPool(poolThreads, threadFactory.getForkJoinFactory(), threadFactory.getThreadGroup(), true);
+        this.eventBus = new Lazy<>(() -> new EventBus(forkJoinPool));
         this.scheduler = new Lazy<>(() -> new Scheduler(schedulerThreads, threadFactory.getSimpleFactory()));
     }
 
@@ -31,7 +30,7 @@ public class Nexus {
      * @param task Task to run
      */
     public CompletableFuture<Void> async(Runnable task) {
-        return CompletableFuture.runAsync(task, commonPool);
+        return CompletableFuture.runAsync(task, forkJoinPool);
     }
 
     /**
@@ -42,7 +41,7 @@ public class Nexus {
      * @return Future
      */
     public <T> CompletableFuture<T> supply(Supplier<T> supplier) {
-        return CompletableFuture.supplyAsync(supplier, commonPool);
+        return CompletableFuture.supplyAsync(supplier, forkJoinPool);
     }
 
     /**
@@ -53,15 +52,6 @@ public class Nexus {
      */
     public Thread thread(Runnable task) {
         return threadFactory.getSimpleFactory().newThread(task);
-    }
-
-    /**
-     * Gets the common executor used by Nexus.
-     *
-     * @return Executor
-     */
-    public Executor executor() {
-        return commonPool;
     }
 
     /**
