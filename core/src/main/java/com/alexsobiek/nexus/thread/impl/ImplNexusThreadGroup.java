@@ -13,6 +13,6 @@ public class ImplNexusThreadGroup extends NexusThreadGroup {
 
     @Override
     public void uncaughtException(Thread t, Throwable e) {
-
+        logger.warn("Thread {} threw an uncaught exception", t, e);
     }
 }
