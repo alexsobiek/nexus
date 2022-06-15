@@ -1,5 +1,6 @@
 # Nexus
-Nexus is a collection of libraries of common implementations I've had to write. 
+Nexus is a collection of libraries of common implementations I've had to write. It's currently in its infancy and not
+available on any maven repositories yet, but the goal is to eventually get to the point of a release.
 
 ## Core
 The core library has the most essential parts of Nexus itself, including the ability to build and inject itself into
