@@ -12,17 +12,12 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @DisplayName("Test library building")
 public class TestLibraryBuilding {
-    TestLib testLib;
+
 
     @Test
     public void testBuilding() {
-        Nexus nexus = Nexus.builder()
-                .withLibrary(TestLib.builder()
-                        .threads(4)
-                        .onBuild(lib -> {
-                            testLib = lib;
-                        }))
-                .build();
+        Nexus nexus = Nexus.builder().build();
+        TestLib testLib = nexus.library(TestLib.builder().threads(4).build());
 
         assertNotNull(nexus.eventBus()); // Test Nexus built correctly for good measure
         assertEquals(4, testLib.getThreadCount()); // Test the thread count we set is used when building
@@ -54,8 +49,8 @@ public class TestLibraryBuilding {
         }
 
         @Override
-        public NexusLibrary.BuildableLibrary<TestLib> onBuild(Consumer<TestLib> then) {
-            return new NexusLibrary.BuildableLibrary<TestLib>(then) {
+        public NexusLibrary.BuildableLibrary<TestLib> build() {
+            return new NexusLibrary.BuildableLibrary<TestLib>() {
                 @Override
                 protected TestLib build() {
                     return new TestLib(threads);

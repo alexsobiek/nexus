@@ -74,6 +74,17 @@ public class Nexus {
         return scheduler.get();
     }
 
+    /**
+     * Builds a Nexus library
+     *
+     * @param library Library to build
+     * @return NexusLibrary
+     * @param <T> Type of Nexus library
+     */
+    public <T extends NexusLibrary> T library(NexusLibrary.BuildableLibrary<T> library) {
+        return library.doBuild(this);
+    }
+
     public static NexusBuilder builder() {
         return new NexusBuilder();
     }

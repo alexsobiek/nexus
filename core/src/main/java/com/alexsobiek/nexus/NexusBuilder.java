@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class NexusBuilder {
-    private List<NexusLibrary.BuildableLibrary<?>> libraries = new ArrayList<>();
     private int poolThreads = -1;
     private int schedulerThreads = -1;
     private NexusThreadFactory threadFactory;
@@ -64,16 +63,7 @@ public class NexusBuilder {
         return this;
     }
 
-    /**
-     * Builds a Nexus library with this NexusBuilder
-     *
-     * @param library Library to build
-     * @return NexusBuilder
-     */
-    public NexusBuilder withLibrary(NexusLibrary.BuildableLibrary<?> library) {
-        libraries.add(library);
-        return this;
-    }
+
 
     // Methods use for building
     private int pt() {
@@ -105,7 +95,6 @@ public class NexusBuilder {
         int pt = pt();
         int st = st(pt);
         Nexus nexus =  new Nexus(pt, st, tf(l), l);
-        libraries.forEach(lib -> lib.doBuild(nexus));
         return nexus;
     }
 }

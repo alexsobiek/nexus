@@ -35,11 +35,12 @@ public abstract class NexusLibrary {
 
     @RequiredArgsConstructor
     public abstract static class BuildableLibrary<T extends NexusLibrary> extends NexusLibrary {
-        private final Consumer<T> consumer;
 
-        protected void doBuild(Nexus nexus) {
-            this.init(nexus);
-            consumer.accept(this.build());
+        protected T doBuild(Nexus nexus) {
+            init(nexus);
+            T lib = build();
+            lib.init(nexus);
+            return lib;
         }
 
         protected abstract T build();
@@ -48,12 +49,11 @@ public abstract class NexusLibrary {
     public static abstract class Builder<T extends NexusLibrary>  {
 
         /**
-         * Creates a buildable library. This essentially promises Nexus will build the library, and it will be consumed
-         * once built.
+         * Creates a buildable library to be built by Nexus
          *
-         * @param then Consumer of built library
          * @return BuildableLibrary
          */
-        public abstract BuildableLibrary<T> onBuild(Consumer<T> then);
+
+        public abstract BuildableLibrary<T> build();
     }
 }
