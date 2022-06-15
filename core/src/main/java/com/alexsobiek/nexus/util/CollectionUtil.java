@@ -13,4 +13,8 @@ public class CollectionUtil {
     public static <K, V> Optional<V> findByKey(Map<K, V> map, Predicate<K> predicate) {
         return find(map.keySet(), predicate).map(map::get);
     }
+
+    public static <K, V> Optional<V> findByValue(Map<K, V> map, Predicate<V> predicate) {
+        return find(map.values(), predicate);
+    }
 }
