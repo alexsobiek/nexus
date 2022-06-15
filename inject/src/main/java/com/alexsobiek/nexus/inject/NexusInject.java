@@ -14,6 +14,15 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
 public class NexusInject extends NexusLibrary {
+
+    /**
+     * Creates a new instance of the provided class using the dependency provider
+     *
+     * @param _class Class to construct
+     * @param provider Dependency provider to use when injecting
+     * @return Future of an optional of the object to construct
+     * @param <T> Type of class constructing
+     */
     public <T> CompletableFuture<Optional<T>> construct(Class<T> _class, DependencyProvider provider) {
         return getNexus().supply(() -> {
             Map<Field, Supplier<?>> suppliers = new HashMap<>();
