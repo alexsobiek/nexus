@@ -1,4 +1,5 @@
 # Nexus
+[![Java CI with Gradle](https://github.com/alexsobiek/nexus/actions/workflows/gradle.yml/badge.svg)](https://github.com/alexsobiek/nexus/actions/workflows/gradle.yml) <br /><br />
 Nexus is a collection of libraries of common implementations I've had to write. It's currently in its infancy and not
 available on any maven repositories yet, but the goal is to eventually get to the point of a release.
 
