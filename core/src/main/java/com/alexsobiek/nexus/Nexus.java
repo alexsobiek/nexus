@@ -2,7 +2,7 @@ package com.alexsobiek.nexus;
 
 import com.alexsobiek.nexus.event.EventBus;
 import com.alexsobiek.nexus.thread.NexusThreadFactory;
-import com.alexsobiek.nexus.util.Lazy;
+import com.alexsobiek.nexus.lazy.Lazy;
 import org.slf4j.Logger;
 
 import java.util.concurrent.CompletableFuture;
