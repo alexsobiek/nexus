@@ -6,4 +6,4 @@ dependencyResolutionManagement {
     }
 }
 
-include("core", "inject")
+include("core", "inject", "plugin", "test-plugin")
