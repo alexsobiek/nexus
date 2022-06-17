@@ -1,10 +1,10 @@
-package com.alexsobiek.nexus.util;
+package com.alexsobiek.nexus.lazy;
 
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class Lazy<T> implements Supplier<T> {
+public class Lazy<T> implements LazyLike<T> {
     private final Optional<Supplier<T>> lazySupplier;
     private T val;
 
