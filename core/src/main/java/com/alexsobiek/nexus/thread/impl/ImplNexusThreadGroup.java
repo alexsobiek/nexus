@@ -10,6 +10,7 @@ public class ImplNexusThreadGroup extends NexusThreadGroup {
 
     @Override
     public void uncaughtException(Thread t, Throwable e) {
+        e.printStackTrace();
         throw new RuntimeException("Uncaught exception from thread " + t, e);
     }
 }
