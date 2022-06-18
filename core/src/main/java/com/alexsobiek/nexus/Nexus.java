@@ -1,24 +1,21 @@
 package com.alexsobiek.nexus;
 
 import com.alexsobiek.nexus.event.EventBus;
-import com.alexsobiek.nexus.thread.NexusThreadFactory;
 import com.alexsobiek.nexus.lazy.Lazy;
-import org.slf4j.Logger;
+import com.alexsobiek.nexus.thread.NexusThreadFactory;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Supplier;
 
 public class Nexus {
-    protected final Logger logger;
     protected final NexusThreadFactory threadFactory;
     protected final ForkJoinPool forkJoinPool;
     private final Lazy<EventBus> eventBus;
     private final Lazy<Scheduler> scheduler;
 
-    protected Nexus(int poolThreads, int schedulerThreads, NexusThreadFactory threadFactory, Logger logger) {
+    protected Nexus(int poolThreads, int schedulerThreads, NexusThreadFactory threadFactory) {
         this.threadFactory = threadFactory;
-        this.logger = logger;
         this.forkJoinPool = new ForkJoinPool(poolThreads, threadFactory.getForkJoinFactory(), threadFactory.getThreadGroup(), true);
         this.eventBus = new Lazy<>(() -> new EventBus(forkJoinPool));
         this.scheduler = new Lazy<>(() -> new Scheduler(schedulerThreads, threadFactory.getSimpleFactory()));
@@ -78,8 +75,8 @@ public class Nexus {
      * Builds a Nexus library
      *
      * @param library Library to build
+     * @param <T>     Type of Nexus library
      * @return NexusLibrary
-     * @param <T> Type of Nexus library
      */
     public <T extends NexusLibrary> T library(NexusLibrary.BuildableLibrary<T> library) {
         return library.doBuild(this);

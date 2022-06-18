@@ -2,17 +2,11 @@ package com.alexsobiek.nexus;
 
 import com.alexsobiek.nexus.thread.NexusThreadFactory;
 import com.alexsobiek.nexus.thread.impl.ImplNexusThreadFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class NexusBuilder {
     private int poolThreads = -1;
     private int schedulerThreads = -1;
     private NexusThreadFactory threadFactory;
-    private Logger logger;
 
     /**
      * Sets the amount of threads available for the common pool.
@@ -52,19 +46,6 @@ public class NexusBuilder {
         return this;
     }
 
-    /**
-     * Sets the SLF4J logger
-     *
-     * @param logger Logger to use
-     * @return NexusBuilder
-     */
-    public NexusBuilder logger(Logger logger) {
-        this.logger = logger;
-        return this;
-    }
-
-
-
     // Methods use for building
     private int pt() {
         return poolThreads == -1
@@ -78,23 +59,16 @@ public class NexusBuilder {
                 : schedulerThreads;
     }
 
-    private NexusThreadFactory tf(Logger l) {
+    private NexusThreadFactory tf() {
         return threadFactory == null
-                ? new ImplNexusThreadFactory(l)
+                ? new ImplNexusThreadFactory()
                 : threadFactory;
     }
 
-    private Logger l() {
-        return logger == null
-                ? LoggerFactory.getLogger("Nexus")
-                : logger;
-    }
-
     public Nexus build() {
-        Logger l = l();
         int pt = pt();
         int st = st(pt);
-        Nexus nexus =  new Nexus(pt, st, tf(l), l);
+        Nexus nexus = new Nexus(pt, st, tf());
         return nexus;
     }
 }

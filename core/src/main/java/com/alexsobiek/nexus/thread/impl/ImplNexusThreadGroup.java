@@ -1,18 +1,15 @@
 package com.alexsobiek.nexus.thread.impl;
 
 import com.alexsobiek.nexus.thread.NexusThreadGroup;
-import org.slf4j.Logger;
 
 public class ImplNexusThreadGroup extends NexusThreadGroup {
-    private final Logger logger;
 
-    public ImplNexusThreadGroup(String name, Logger logger) {
+    public ImplNexusThreadGroup(String name) {
         super(name);
-        this.logger = logger;
     }
 
     @Override
     public void uncaughtException(Thread t, Throwable e) {
-        logger.warn("Thread {} threw an uncaught exception", t, e);
+        throw new RuntimeException("Uncaught exception from thread " + t, e);
     }
 }

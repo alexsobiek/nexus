@@ -19,7 +19,6 @@ java {
 dependencies {
     compileOnly("org.projectlombok:lombok:1.18.22")
     annotationProcessor("org.projectlombok:lombok:1.18.22")
-    implementation("org.slf4j:slf4j-simple:1.7.36");
     testImplementation("org.junit.jupiter:junit-jupiter:5.8.1");
 }
 
@@ -34,9 +33,7 @@ tasks {
     }
 
     shadowJar {
-        minimize() {
-            exclude(dependency("ch.qos.logback:logback-classic"))
-        }
+        minimize()
         archiveClassifier.set("")
     }
 

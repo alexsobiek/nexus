@@ -2,32 +2,29 @@ package com.alexsobiek.nexus.thread.impl;
 
 import com.alexsobiek.nexus.thread.NexusThreadFactory;
 import com.alexsobiek.nexus.thread.NexusThreadGroup;
-import org.slf4j.Logger;
 
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinWorkerThread;
 
 public class ImplNexusThreadFactory implements NexusThreadFactory {
-    private final Logger logger;
     private final NexusThreadGroup group;
     private final String name;
     private final Simple simple;
     private final ForkJoin forkJoin;
 
-    public ImplNexusThreadFactory(NexusThreadGroup group, String name, Logger logger) {
-        this.logger = logger;
+    public ImplNexusThreadFactory(NexusThreadGroup group, String name) {
         this.group = group;
         this.name = name;
         simple = new SimpleFactory(this);
         forkJoin = new ForkJoinFactory(this);
     }
 
-    public ImplNexusThreadFactory(String name, Logger logger) {
-        this(new ImplNexusThreadGroup(name, logger), name, logger);
+    public ImplNexusThreadFactory(String name) {
+        this(new ImplNexusThreadGroup(name), name);
     }
 
-    public ImplNexusThreadFactory(Logger logger) {
-        this("Nexus", logger);
+    public ImplNexusThreadFactory() {
+        this("Nexus");
     }
 
     @Override
@@ -66,7 +63,6 @@ public class ImplNexusThreadFactory implements NexusThreadFactory {
         public Thread newThread(Runnable task) {
             Thread thread = new Thread(parent.getThreadGroup(), task);
             setThreadName(thread, parent);
-            parent.logger.debug("Created new simple thread {}", thread);
             return thread;
         }
     }
@@ -84,7 +80,6 @@ public class ImplNexusThreadFactory implements NexusThreadFactory {
             ForkJoinWorkerThread thread = defaultFactory.newThread(pool);
             thread.setUncaughtExceptionHandler(parent.getThreadGroup());
             setThreadName(thread, parent);
-            parent.logger.debug("Created new fork join thread {}", thread);
             return thread;
         }
     }

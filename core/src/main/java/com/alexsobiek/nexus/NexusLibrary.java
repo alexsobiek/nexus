@@ -3,10 +3,8 @@ package com.alexsobiek.nexus;
 import com.alexsobiek.nexus.thread.NexusThreadFactory;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
 
-import java.util.concurrent.*;
-import java.util.function.Consumer;
+import java.util.concurrent.ForkJoinPool;
 
 @Getter
 public abstract class NexusLibrary {
@@ -19,10 +17,6 @@ public abstract class NexusLibrary {
      */
     protected void init(Nexus nexus) {
         this.nexus = nexus;
-    }
-
-    protected Logger getLogger() {
-        return nexus.logger;
     }
 
     protected NexusThreadFactory getThreadFactory() {
@@ -46,7 +40,7 @@ public abstract class NexusLibrary {
         protected abstract T build();
     }
 
-    public static abstract class Builder<T extends NexusLibrary>  {
+    public static abstract class Builder<T extends NexusLibrary> {
 
         /**
          * Creates a buildable library to be built by Nexus
