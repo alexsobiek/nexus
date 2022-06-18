@@ -46,7 +46,6 @@ public class JarPluginLoader<P extends NexusPlugin> {
                     else {
                         loader = new PluginClassLoader(parentClassLoader);
                         loader.addJar(file);
-                        loader.loadClasses(jar);
                         loaded.put(jar, loader);
                     }
 

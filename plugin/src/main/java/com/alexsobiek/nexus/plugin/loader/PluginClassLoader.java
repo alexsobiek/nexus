@@ -18,17 +18,4 @@ public class PluginClassLoader extends URLClassLoader {
             throw new RuntimeException(e);
         }
     }
-
-    protected void loadClasses(JarFile jarFile) {
-        jarFile.stream() // Load all the classes in the plugin
-                .filter(e -> e.getName().endsWith(".class") && !e.getName().endsWith("module-info.class"))
-                .map(je -> je.getName().replace("/", ".").replace(".class", ""))
-                .forEach(str -> {
-                    try {
-                        loadClass(str);
-                    } catch (ClassNotFoundException e) {
-                        throw new RuntimeException(e);
-                    }
-                });
-    }
 }
