@@ -1,5 +1,7 @@
 # Nexus
-[![Java CI with Gradle](https://github.com/alexsobiek/nexus/actions/workflows/gradle.yml/badge.svg)](https://github.com/alexsobiek/nexus/actions/workflows/gradle.yml) <br /><br />
+[![Java CI with Gradle](https://github.com/alexsobiek/nexus/actions/workflows/gradle.yml/badge.svg)](https://github.com/alexsobiek/nexus/actions/workflows/gradle.yml)
+[![](https://jitpack.io/v/com.alexsobiek/nexus.svg)](https://jitpack.io/#com.alexsobiek/nexus)
+<br /><br />
 Nexus is a collection of libraries of common implementations I've had to write. It's currently in its infancy, but [pre-release builds are available](https://github.com/alexsobiek/nexus/releases) 
 
 ## Core
