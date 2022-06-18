@@ -26,17 +26,23 @@ public class NexusInject extends NexusLibrary {
     public <T> CompletableFuture<Optional<T>> construct(Class<T> _class, DependencyProvider provider) {
         return getNexus().supply(() -> {
             Map<Field, Supplier<?>> suppliers = new HashMap<>();
-            for (Field field : _class.getDeclaredFields()) {
-                if (field.isAnnotationPresent(Inject.class)) {
-                    Inject annotation = field.getDeclaredAnnotation(Inject.class);
-                    Optional<Supplier<?>> supplier = provider.get(field.getType(), annotation.identifier());
 
-                    if (supplier.isPresent()) suppliers.put(field, supplier.get());
-                    else {
-                        InjectionException.runtime(String.format("No supplier for field %s in class %s", field, _class));
-                        return Optional.empty();
+            Class<?> currentClass = _class;
+
+            while(!currentClass.equals(Object.class)) {
+                for (Field field : currentClass.getDeclaredFields()) {
+                    if (field.isAnnotationPresent(Inject.class)) {
+                        Inject annotation = field.getDeclaredAnnotation(Inject.class);
+                        Optional<Supplier<?>> supplier = provider.get(field.getType(), annotation.identifier());
+
+                        if (supplier.isPresent()) suppliers.put(field, supplier.get());
+                        else {
+                            InjectionException.runtime(String.format("No supplier for field %s in class %s", field, _class));
+                            return Optional.empty();
+                        }
                     }
                 }
+                currentClass = currentClass.getSuperclass();
             }
 
             try {

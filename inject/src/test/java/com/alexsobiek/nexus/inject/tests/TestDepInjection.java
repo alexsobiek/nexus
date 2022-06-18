@@ -48,9 +48,13 @@ public class TestDepInjection {
         }
     }
 
-    static class TestClass {
+    static class TestSuperClass {
+
         @Inject(identifier = "testString")
         public String testString;
+    }
+
+    static class TestClass extends TestSuperClass {
 
         @Inject
         public EventBus eventBus;
