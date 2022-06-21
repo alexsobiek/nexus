@@ -13,10 +13,14 @@ public class TCPClient extends TCPSocket<Channel, Bootstrap> {
         super(address, threads, pipeline);
     }
 
-    static class Builder extends AbstractBuilder<TCPClient, Builder> {
+    public static Builder builder() {
+        return new TCPClient.Builder();
+    }
+
+    public static class Builder extends AbstractBuilder<TCPClient, Builder> {
         @Override
         protected TCPClient doBuild() {
-            return new TCPClient(address(), threads, pipeline());
+            return new TCPClient(getAddress(), threads, getPipeline());
         }
     }
 }

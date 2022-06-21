@@ -12,10 +12,14 @@ public class TCPServer extends TCPSocket<ServerChannel, ServerBootstrap> {
         super(address, threads, pipeline);
     }
 
-    static class Builder extends AbstractBuilder<TCPServer, Builder> {
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder extends AbstractBuilder<TCPServer, Builder> {
         @Override
         protected TCPServer doBuild() {
-            return new TCPServer(address(), threads, pipeline());
+            return new TCPServer(getAddress(), threads, getPipeline());
         }
     }
 }
