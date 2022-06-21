@@ -25,7 +25,7 @@ import java.net.InetSocketAddress;
 
 @Getter
 @RequiredArgsConstructor
-public class TCPSocket<S extends Channel, B extends AbstractBootstrap<B, S>> extends NexusLibrary {
+public abstract class TCPSocket<S extends Channel, B extends AbstractBootstrap<B, S>> extends NexusLibrary {
     protected final boolean isServer = getClass().isAssignableFrom(TCPServer.class);
     protected final InetSocketAddress address;
     protected final int threads;
