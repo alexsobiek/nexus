@@ -4,6 +4,7 @@ import com.alexsobiek.nexus.tcp.proto.Packet;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.MessageToByteEncoder;
 import io.netty.handler.codec.MessageToMessageCodec;
@@ -20,10 +21,15 @@ import java.util.Optional;
  * @param <B> Buffer type
  * @param <P> Packet type
  */
-@Getter
 @RequiredArgsConstructor
 public abstract class Connection<B extends ByteBuf, P extends Packet<B>> {
+    @Getter
     protected final ChannelHandlerContext context;
+    @Getter
+    private boolean active;
+    protected String decoderName = "decoder";
+    protected String encoderName = "encoder";
+    protected String packetHandlerName = "packet_handler";
 
     public final MessageToByteEncoder<P> encoder = new MessageToByteEncoder<P>() {
         @Override
@@ -32,7 +38,6 @@ public abstract class Connection<B extends ByteBuf, P extends Packet<B>> {
         }
     };
 
-    @SuppressWarnings("unchecked")
     public final ByteToMessageDecoder decoder = new ByteToMessageDecoder() {
         protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
             if (checkContext(ctx)) Connection.this.decode(in, out);
@@ -52,7 +57,19 @@ public abstract class Connection<B extends ByteBuf, P extends Packet<B>> {
         }
     };
 
-    private boolean active;
+
+
+    /**
+     * Injects this connection's codec into the pipeline
+     *
+     * @param pipeline Pipeline to inject to
+     */
+    public void inject(ChannelPipeline pipeline) {
+        if (!pipeline.equals(context.pipeline())) throw new RuntimeException("Mismatched ChannelPipeline object");
+        pipeline.addLast(decoderName, decoder);
+        pipeline.addLast(encoderName, encoder);
+        pipeline.addLast(packetHandlerName, packetHandler);
+    }
 
     protected boolean checkContext(ChannelHandlerContext ctx) {
         return context.channel().equals(ctx.channel());

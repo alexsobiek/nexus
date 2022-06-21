@@ -23,7 +23,10 @@ public abstract class ChannelHandler<C extends Connection<?, ?>> extends Channel
     public void channelActive(ChannelHandlerContext context) {
         C conn = createConnection(context);
         if (!onConnectionActive(createConnection(context))) conn.close();
-        else connections.put(conn.getRemoteAddress().hashCode(), conn);
+        else {
+            conn.inject(context.pipeline());
+            connections.put(conn.getRemoteAddress().hashCode(), conn);
+        }
     }
 
     @Override
@@ -35,6 +38,7 @@ public abstract class ChannelHandler<C extends Connection<?, ?>> extends Channel
     public void handlerRemoved(ChannelHandlerContext ctx) {
         Optional<C> conn = Optional.ofNullable(connections.get(ctx.channel().remoteAddress().hashCode()));
         conn.ifPresent(c -> c.close());
+        onHandlerRemoved(ctx);
     }
 
     @Override
