@@ -46,11 +46,11 @@ public abstract class AbstractBuilder<T extends AbstractSocket<?, ?>, B extends 
         return (B) this;
     }
 
-    protected InetSocketAddress address() {
+    protected InetSocketAddress getAddress() {
         return address != null ? address : new InetSocketAddress(3000); // use default port 3000 if not set
     }
 
-    protected Pipeline<?> pipeline() {
+    protected Pipeline<?> getPipeline() {
         if (pipeline == null) throw new RuntimeException("Pipeline cannot be empty");
         else return pipeline;
     }
