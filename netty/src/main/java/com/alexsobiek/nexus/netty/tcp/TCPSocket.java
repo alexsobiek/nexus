@@ -18,11 +18,12 @@ public abstract class TCPSocket<S extends Channel, B extends AbstractBootstrap<B
     }
 
     protected Class<? extends Channel> channel() {
+        boolean isServer = getClass().isAssignableFrom(TCPServer.class);
         return Epoll.isAvailable()
-                ? isServer()
+                ? isServer
                 ? EpollServerSocketChannel.class
                 : EpollSocketChannel.class
-                : isServer()
+                : isServer
                 ? NioServerSocketChannel.class
                 : NioSocketChannel.class;
     }
