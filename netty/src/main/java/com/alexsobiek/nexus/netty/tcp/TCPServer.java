@@ -1,4 +1,4 @@
-package com.alexsobiek.nexus.netty;
+package com.alexsobiek.nexus.netty.tcp;
 
 import com.alexsobiek.nexus.netty.channel.Pipeline;
 import io.netty.bootstrap.ServerBootstrap;
