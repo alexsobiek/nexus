@@ -4,7 +4,6 @@ import com.alexsobiek.nexus.NexusLibrary;
 import com.alexsobiek.nexus.lazy.Lazy;
 import com.alexsobiek.nexus.tcp.channel.Pipeline;
 import com.alexsobiek.nexus.tcp.server.TCPServer;
-import com.alexsobiek.nexus.util.ReflectionUtil;
 import io.netty.bootstrap.AbstractBootstrap;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
@@ -18,66 +17,89 @@ import io.netty.channel.epoll.EpollSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.lang.reflect.InvocationTargetException;
 import java.net.InetSocketAddress;
 
+@Getter
 @RequiredArgsConstructor
-public class TCPSocket<S extends TCPSocket<?, ?, ?>, B extends AbstractBootstrap<B, ?>, C extends Connection<?, ?>> extends NexusLibrary {
+public class TCPSocket<S extends Channel, B extends AbstractBootstrap<B, S>> extends NexusLibrary {
+    protected final boolean isServer = getClass().isAssignableFrom(TCPServer.class);
     protected final InetSocketAddress address;
     protected final int threads;
-    protected final Pipeline<C> pipeline;
-    // protected final Channel channel;
-    protected final Lazy<Class<? extends Channel>> channel = new Lazy<>(() -> {
-        Class<S> cc = (Class<S>) ReflectionUtil.getGenericParameter(getClass(), 0);
-        return Epoll.isAvailable()
-                ? isServer(cc)
-                ? EpollServerSocketChannel.class
-                : EpollSocketChannel.class
-                : isServer(cc)
-                ? NioServerSocketChannel.class
-                : NioSocketChannel.class;
-    });
-    protected final Lazy<MultithreadEventLoopGroup> nioGroup = new Lazy<>(() -> {
-        Class<? extends Channel> cc = channel.get();
-        return Epoll.isAvailable() && (cc.equals(EpollServerSocketChannel.class) || cc.equals(EpollSocketChannel.class))
-                ? new EpollEventLoopGroup(threads, getThreadFactory().getSimpleFactory())
-                : new NioEventLoopGroup(threads, getThreadFactory().getSimpleFactory());
-    });
-
-    private boolean isServer(Class<S> socketClass) {
-        return socketClass.isAssignableFrom(TCPServer.class);
-    }
+    protected final Pipeline<?> pipeline;
+    private ChannelFuture channelFuture;
+    private final Lazy<Class<? extends Channel>> channel = new Lazy<>(this::channel);
+    private final Lazy<MultithreadEventLoopGroup> nioGroup = new Lazy<>(this::nioGroup);
 
     private boolean isServer(B bootstrap) {
         return bootstrap instanceof ServerBootstrap;
     }
 
-    protected <A extends Channel> B bootstrap(Class<? extends B> bootstrapClass)
-            throws InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException {
+    private Class<? extends Channel> channel() {
+        return Epoll.isAvailable()
+                ? isServer
+                ? EpollServerSocketChannel.class
+                : EpollSocketChannel.class
+                : isServer
+                ? NioServerSocketChannel.class
+                : NioSocketChannel.class;
+    }
+
+    private MultithreadEventLoopGroup nioGroup() {
+        Class<? extends Channel> cc = channel.get();
+        return Epoll.isAvailable() && (cc.equals(EpollServerSocketChannel.class) || cc.equals(EpollSocketChannel.class))
+                ? new EpollEventLoopGroup(threads, getThreadFactory().getSimpleFactory())
+                : new NioEventLoopGroup(threads, getThreadFactory().getSimpleFactory());
+    }
+
+    public Class<? extends Channel> getChannel() {
+        return channel.get();
+    }
+
+    public MultithreadEventLoopGroup getNioGroup() {
+        return nioGroup.get();
+    }
+
+    @SuppressWarnings("unchecked")
+    protected B bootstrap() throws InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException {
+        Class<? extends B> bootstrapClass = (Class<? extends B>) (isServer ? ServerBootstrap.class : Bootstrap.class);
         B bootstrap = bootstrapClass.getDeclaredConstructor().newInstance().group(nioGroup.get());
-        if (isServer(bootstrap)) {
+        if (isServer) {
             ((ServerBootstrap) bootstrap).childHandler(pipeline);
             bootstrap.localAddress(address);
         } else {
             ((Bootstrap) bootstrap).remoteAddress(address);
             bootstrap.handler(pipeline);
         }
-        bootstrap.channel((Channel) channel.get());
-
+        bootstrap.channel((Class<? extends S>) channel.get());
         return bootstrap;
     }
 
-    private ChannelFuture start(B bootstrap) throws InterruptedException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException {
-        ChannelFuture future = null;
+    private ChannelFuture start() {
         try {
-            if (isServer(bootstrap)) bootstrap.bind().sync();
-            else ((Bootstrap) bootstrap).connect(address).sync();
-        } catch (IllegalStateException e) {
-            // An IllegalStateException might be thrown when Epoll is available but Netty fails to use it.
-            // This can happen on bleeding-edge linux kernels. In this case, fallback to NioEventLoopGroup.
-            nioGroup.set(new NioEventLoopGroup(threads, getThreadFactory().getSimpleFactory()));
+            channelFuture = start(bootstrap());
+            return channelFuture;
+        } catch (Throwable t) {
+            throw new RuntimeException("Failed starting socket", t);
         }
+    }
+
+    private ChannelFuture start(B bootstrap) throws InterruptedException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException {
+        ChannelFuture future;
+        try {
+            future = isServer(bootstrap) ? bootstrap.bind() : ((Bootstrap) bootstrap).connect(address);
+            future.sync();
+        } catch (IllegalStateException e) {
+            if (Epoll.isAvailable()) {
+                // An IllegalStateException might be thrown when Epoll is available but Netty fails to use it.
+                // This can happen on bleeding-edge linux kernels. In this case, fallback to NioEventLoopGroup.
+                nioGroup.set(new NioEventLoopGroup(threads, getThreadFactory().getSimpleFactory()));
+                future = start(bootstrap());
+            } else throw e;
+        }
+        return future;
     }
 }
