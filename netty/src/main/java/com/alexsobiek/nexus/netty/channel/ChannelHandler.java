@@ -1,9 +1,11 @@
 package com.alexsobiek.nexus.netty.channel;
 
 import com.alexsobiek.nexus.netty.Connection;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.socket.ServerSocketChannel;
 import io.netty.handler.timeout.ReadTimeoutException;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -19,13 +21,18 @@ import java.util.concurrent.ConcurrentHashMap;
 public abstract class ChannelHandler<C extends Connection<?, ?>> extends ChannelDuplexHandler {
     private final Map<Integer, C> connections = new ConcurrentHashMap<>();
 
+    protected Integer key(ChannelHandlerContext context) {
+        return context.channel().remoteAddress().hashCode();
+    }
+
     @Override
     public void channelActive(ChannelHandlerContext context) {
         C conn = createConnection(context);
-        if (!onConnectionActive(createConnection(context))) conn.close();
+        if (!onConnectionActive(conn)) conn.close();
         else {
             conn.inject(context.pipeline());
-            connections.put(conn.getRemoteAddress().hashCode(), conn);
+            connections.put(key(context), conn);
+            onConnectionAdded(conn);
         }
     }
 
@@ -35,16 +42,16 @@ public abstract class ChannelHandler<C extends Connection<?, ?>> extends Channel
     }
 
     @Override
-    public void handlerRemoved(ChannelHandlerContext ctx) {
-        Optional<C> conn = Optional.ofNullable(connections.get(ctx.channel().remoteAddress().hashCode()));
+    public void handlerRemoved(ChannelHandlerContext context) {
+        Optional<C> conn = Optional.ofNullable(connections.get(key(context)));
         conn.ifPresent(c -> c.close());
-        onHandlerRemoved(ctx);
+        onHandlerRemoved(context);
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        if (cause instanceof ReadTimeoutException) onTimeout(ctx);
-        else onException(ctx, cause);
+    public void exceptionCaught(ChannelHandlerContext context, Throwable cause) {
+        if (cause instanceof ReadTimeoutException) onTimeout(context);
+        else onException(context, cause);
     }
 
     protected abstract C createConnection(ChannelHandlerContext context);
@@ -55,11 +62,13 @@ public abstract class ChannelHandler<C extends Connection<?, ?>> extends Channel
 
     protected abstract boolean onConnectionActive(C connection);
 
+    protected abstract void onConnectionAdded(C connection);
+
     public abstract void onTimeout(ChannelHandlerContext context);
 
     public abstract void onException(ChannelHandlerContext context, Throwable cause);
 
-    public Optional<C> getConnection(SocketAddress remoteAddress) {
-        return Optional.ofNullable(connections.get(remoteAddress.hashCode()));
+    public Optional<C> getConnection(SocketAddress address) {
+        return Optional.ofNullable(connections.get(address.hashCode()));
     }
 }
