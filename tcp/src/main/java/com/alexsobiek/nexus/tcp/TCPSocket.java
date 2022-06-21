@@ -51,14 +51,6 @@ public class TCPSocket<S extends Channel, B extends AbstractBootstrap<B, S>> ext
                 : new NioEventLoopGroup(threads, getThreadFactory().getSimpleFactory());
     }
 
-    public Class<? extends Channel> getChannel() {
-        return channel.get();
-    }
-
-    public MultithreadEventLoopGroup getNioGroup() {
-        return nioGroup.get();
-    }
-
     @SuppressWarnings("unchecked")
     protected B bootstrap() throws InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException {
         Class<? extends B> bootstrapClass = (Class<? extends B>) (isServer ? ServerBootstrap.class : Bootstrap.class);
@@ -74,6 +66,11 @@ public class TCPSocket<S extends Channel, B extends AbstractBootstrap<B, S>> ext
         return bootstrap;
     }
 
+    /**
+     * Starts this socket
+     *
+     * @return ChannelFuture
+     */
     private ChannelFuture start() {
         try {
             channelFuture = start(bootstrap());
@@ -99,8 +96,29 @@ public class TCPSocket<S extends Channel, B extends AbstractBootstrap<B, S>> ext
         return future;
     }
 
+    /**
+     * Stops this socket
+     */
     public void stop() throws InterruptedException {
         channelFuture.channel().closeFuture().sync();
         nioGroup.get().shutdownGracefully().sync();
+    }
+
+    /**
+     * Gets the {@link Channel} class this socket is using
+     *
+     * @return Channel class
+     */
+    public Class<? extends Channel> getChannel() {
+        return channel.get();
+    }
+
+    /**
+     * Gets the {@link MultithreadEventLoopGroup} this socket is using
+     *
+     * @return MultithreadEventLoopGroup
+     */
+    public MultithreadEventLoopGroup getNioGroup() {
+        return nioGroup.get();
     }
 }
