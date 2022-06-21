@@ -6,4 +6,4 @@ dependencyResolutionManagement {
     }
 }
 
-include("core", "inject", "tcp", "plugin", "test-plugin")
+include("core", "inject", "netty", "plugin", "test-plugin")

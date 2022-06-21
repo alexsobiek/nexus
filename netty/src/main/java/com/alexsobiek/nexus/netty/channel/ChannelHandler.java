@@ -1,6 +1,6 @@
-package com.alexsobiek.nexus.tcp.channel;
+package com.alexsobiek.nexus.netty.channel;
 
-import com.alexsobiek.nexus.tcp.Connection;
+import com.alexsobiek.nexus.netty.Connection;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;

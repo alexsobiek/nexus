@@ -1,7 +1,6 @@
-package com.alexsobiek.nexus.tcp.client;
+package com.alexsobiek.nexus.netty;
 
-import com.alexsobiek.nexus.tcp.TCPSocket;
-import com.alexsobiek.nexus.tcp.channel.Pipeline;
+import com.alexsobiek.nexus.netty.channel.Pipeline;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 

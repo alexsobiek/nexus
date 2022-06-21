@@ -1,6 +1,6 @@
-package com.alexsobiek.nexus.tcp;
+package com.alexsobiek.nexus.netty;
 
-import com.alexsobiek.nexus.tcp.proto.Packet;
+import com.alexsobiek.nexus.netty.proto.Packet;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;

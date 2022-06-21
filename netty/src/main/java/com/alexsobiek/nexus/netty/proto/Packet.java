@@ -1,4 +1,4 @@
-package com.alexsobiek.nexus.tcp.proto;
+package com.alexsobiek.nexus.netty.proto;
 
 import io.netty.buffer.ByteBuf;
 
