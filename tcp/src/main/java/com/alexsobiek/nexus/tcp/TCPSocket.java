@@ -34,10 +34,6 @@ public class TCPSocket<S extends Channel, B extends AbstractBootstrap<B, S>> ext
     private final Lazy<Class<? extends Channel>> channel = new Lazy<>(this::channel);
     private final Lazy<MultithreadEventLoopGroup> nioGroup = new Lazy<>(this::nioGroup);
 
-    private boolean isServer(B bootstrap) {
-        return bootstrap instanceof ServerBootstrap;
-    }
-
     private Class<? extends Channel> channel() {
         return Epoll.isAvailable()
                 ? isServer
@@ -90,7 +86,7 @@ public class TCPSocket<S extends Channel, B extends AbstractBootstrap<B, S>> ext
     private ChannelFuture start(B bootstrap) throws InterruptedException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException {
         ChannelFuture future;
         try {
-            future = isServer(bootstrap) ? bootstrap.bind() : ((Bootstrap) bootstrap).connect(address);
+            future = isServer ? bootstrap.bind() : ((Bootstrap) bootstrap).connect(address);
             future.sync();
         } catch (IllegalStateException e) {
             if (Epoll.isAvailable()) {
