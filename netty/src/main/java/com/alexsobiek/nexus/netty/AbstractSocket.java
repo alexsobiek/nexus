@@ -3,6 +3,7 @@ package com.alexsobiek.nexus.netty;
 import com.alexsobiek.nexus.NexusLibrary;
 import com.alexsobiek.nexus.lazy.Lazy;
 import com.alexsobiek.nexus.netty.channel.Pipeline;
+import com.alexsobiek.nexus.util.ReflectionUtil;
 import io.netty.bootstrap.AbstractBootstrap;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
@@ -31,21 +32,21 @@ public abstract class AbstractSocket<S extends Channel, B extends AbstractBootst
     private final Lazy<Class<? extends Channel>> channel = new Lazy<>(this::channel);
     private final Lazy<MultithreadEventLoopGroup> nioGroup = new Lazy<>(this::nioGroup);
 
+    protected boolean isEpoll() {
+        Class<? extends Channel> cc = channel.get();
+        return Epoll.isAvailable()
+                && (AbstractEpollStreamChannel.class.isAssignableFrom(cc)
+                || AbstractEpollServerChannel.class.isAssignableFrom(cc));
+    }
+
     private MultithreadEventLoopGroup nioGroup() {
         return isEpoll()
                 ? new EpollEventLoopGroup(threads, getThreadFactory().getSimpleFactory())
                 : new NioEventLoopGroup(threads, getThreadFactory().getSimpleFactory());
     }
 
-    protected boolean isEpoll() {
-        Class<? extends Channel> cc = channel.get();
-        return Epoll.isAvailable()
-                && (cc.isAssignableFrom(AbstractEpollStreamChannel.class)
-                || cc.isAssignableFrom(AbstractEpollServerChannel.class));
-    }
-
     protected boolean isServer() {
-        return channel.get().isAssignableFrom(ServerChannel.class);
+        return ServerChannel.class.isAssignableFrom(ReflectionUtil.getGenericParameter(getClass(), 0));
     }
 
     @SuppressWarnings("unchecked")
