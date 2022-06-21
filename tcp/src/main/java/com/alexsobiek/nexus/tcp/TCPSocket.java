@@ -102,4 +102,9 @@ public class TCPSocket<S extends Channel, B extends AbstractBootstrap<B, S>> ext
         }
         return future;
     }
+
+    public void stop() throws InterruptedException {
+        channelFuture.channel().closeFuture().sync();
+        nioGroup.get().shutdownGracefully().sync();
+    }
 }
