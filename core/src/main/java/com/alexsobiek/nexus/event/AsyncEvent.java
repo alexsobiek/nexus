@@ -7,5 +7,5 @@ package com.alexsobiek.nexus.event;
  * Furthermore, the event bus will parallelize calls meaning it will not
  * wait for a listener to finish before calling the next.
  */
-public interface AsyncEvent extends Event {
+public interface AsyncEvent {
 }
