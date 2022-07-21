@@ -1,5 +1,6 @@
 package com.alexsobiek.nexus;
 
+import com.alexsobiek.nexus.event.Event;
 import com.alexsobiek.nexus.event.EventBus;
 import com.alexsobiek.nexus.lazy.Lazy;
 import com.alexsobiek.nexus.thread.NexusThreadFactory;
@@ -11,13 +12,13 @@ import java.util.function.Supplier;
 public class Nexus {
     protected final NexusThreadFactory threadFactory;
     protected final ForkJoinPool forkJoinPool;
-    private final Lazy<EventBus> eventBus;
+    private final Lazy<EventBus<Event>> eventBus;
     private final Lazy<Scheduler> scheduler;
 
     protected Nexus(int poolThreads, int schedulerThreads, NexusThreadFactory threadFactory) {
         this.threadFactory = threadFactory;
         this.forkJoinPool = new ForkJoinPool(poolThreads, threadFactory.getForkJoinFactory(), threadFactory.getThreadGroup(), true);
-        this.eventBus = new Lazy<>(() -> new EventBus(forkJoinPool));
+        this.eventBus = new Lazy<>(() -> new EventBus<>(forkJoinPool));
         this.scheduler = new Lazy<>(() -> new Scheduler(schedulerThreads, threadFactory.getSimpleFactory()));
     }
 
@@ -57,7 +58,7 @@ public class Nexus {
      *
      * @return EventBus
      */
-    public EventBus eventBus() {
+    public EventBus<Event> eventBus() {
         return eventBus.get();
     }
 
@@ -69,6 +70,10 @@ public class Nexus {
      */
     public Scheduler scheduler() {
         return scheduler.get();
+    }
+
+    public <T> EventBus<T> newEventBus() {
+        return new EventBus<>(forkJoinPool);
     }
 
     /**

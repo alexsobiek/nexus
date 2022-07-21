@@ -2,37 +2,28 @@ package com.alexsobiek.nexus.event;
 
 import com.alexsobiek.nexus.Nexus;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
-public class EventBus {
+public class EventBus<E> {
     private final Executor executor;
-    private final ConcurrentHashMap<Class<? extends Event>, List<EventConsumer<Event>>> eventListeners;
+    protected final ConcurrentHashMap<Class<? extends E>, Map<UUID, EventSubscriber<? extends E>>> subscribers;
 
     public EventBus(Executor executor) {
         this.executor = executor;
-        eventListeners = new ConcurrentHashMap<>();
+        subscribers = new ConcurrentHashMap<>();
     }
 
-    /**
-     * Listens for an event with priority
-     *
-     * @param eventClass Event class of event this consumer is listening for
-     * @param priority   This consumers priority
-     * @param listener   Consumer of event
-     * @param <T>        Event type
-     */
-    @SuppressWarnings("unchecked")
-    public <T extends Event> void listen(Class<T> eventClass, int priority, Consumer<T> listener) {
-        EventConsumer<T> consumer = new EventConsumer<>(listener, priority);
-        if (eventListeners.containsKey(eventClass)) eventListeners.get(eventClass).add((EventConsumer<Event>) consumer);
-        else eventListeners.put(eventClass, new ArrayList<EventConsumer<Event>>() {{
-            add((EventConsumer<Event>) consumer);
+    public <T extends E> EventSubscriber<T> listen(Class<T> eventClass, int priority, Consumer<T> listener) {
+        EventSubscriber<T> subscriber = new EventSubscriber<>(this, eventClass, listener, priority);
+        if (subscribers.containsKey(eventClass)) subscribers.get(eventClass).put(subscriber.getId(), subscriber);
+        else subscribers.put(eventClass, new HashMap<UUID, EventSubscriber<? extends E>>(){{
+            put(subscriber.getId(), subscriber);
         }});
+        return subscriber;
     }
 
     /**
@@ -42,13 +33,14 @@ public class EventBus {
      * @param listener   Consumer of event
      * @param <T>        Event type
      */
-    public <T extends Event> void listen(Class<T> eventClass, Consumer<T> listener) {
-        listen(eventClass, -1, listener);
+    public <T extends E> EventSubscriber<T> listen(Class<T> eventClass, Consumer<T> listener) {
+        return listen(eventClass, -1, listener);
     }
 
+    @SuppressWarnings("unchecked")
     protected <T extends AsyncEvent> void postAsync(T event, Executor executor) {
-        if (eventListeners.containsKey(event.getClass()))
-            eventListeners.get(event.getClass()).forEach(c -> executor.execute(() -> c.accept(event)));
+        if (subscribers.containsKey(event.getClass()))
+            subscribers.get(event.getClass()).values().forEach(c -> executor.execute(() -> ((EventSubscriber<T>) c).accept(event)));
     }
 
     /**
@@ -59,11 +51,12 @@ public class EventBus {
      * @param <T>      Event type
      * @return Future - completes once all listeners have completed processing event
      */
+    @SuppressWarnings("unchecked")
     public <T extends Event> CompletableFuture<T> post(T event, Executor executor) {
         return CompletableFuture.supplyAsync(() -> {
             if (event instanceof AsyncEvent) postAsync((AsyncEvent) event, executor);
-            else if (eventListeners.containsKey(event.getClass()))
-                eventListeners.get(event.getClass()).stream().sorted().forEach(consumer -> consumer.accept(event));
+            else if (subscribers.containsKey(event.getClass()))
+                subscribers.get(event.getClass()).values().stream().sorted().forEach(c -> ((EventSubscriber<T>) c).accept(event));
             return event;
         }, executor);
     }
@@ -77,6 +70,12 @@ public class EventBus {
      */
     public <T extends Event> CompletableFuture<T> post(T event) {
         return this.post(event, executor);
+    }
+
+    public Collection<EventSubscriber<? extends E>> subscribers(Class<? extends E> eventClass)  {
+        if (subscribers.containsKey(eventClass))
+            return subscribers.get(eventClass).values();
+        else return Collections.emptyList();
     }
 }
 
