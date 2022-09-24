@@ -72,6 +72,14 @@ public class Nexus {
         return scheduler.get();
     }
 
+    /**
+     * Gets the Nexus Thread Factory
+     * @return NexusThreadFactory
+     */
+    public NexusThreadFactory threadFactory() {
+        return threadFactory;
+    }
+
     public <T> EventBus<T> newEventBus() {
         return new EventBus<>(forkJoinPool);
     }
