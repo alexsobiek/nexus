@@ -1,6 +1,7 @@
 package com.alexsobiek.nexus.util;
 
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class Result<S, F> {
     private S success;
@@ -109,5 +110,24 @@ public class Result<S, F> {
         if (isSuccessful()) successConsumer.accept(success);
         else failConsumer.accept(fail);
         return this;
+    }
+
+    public S orElse(S s) {
+        if (isSuccessful()) return success;
+        else return s;
+    }
+
+    public S orElseThrow() {
+        if (isSuccessful()) return success;
+        else throw new RuntimeException("Result failed: " + fail);
+    }
+
+    public S orElseThrow(Supplier<Throwable> throwable) {
+        if (isSuccessful()) return success;
+        else {
+            Thread thread = Thread.currentThread();
+            thread.getUncaughtExceptionHandler().uncaughtException(thread, throwable.get());
+            return null;
+        }
     }
 }
